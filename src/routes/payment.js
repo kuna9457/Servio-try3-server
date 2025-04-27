@@ -126,22 +126,22 @@ router.post('/create-order', authenticateToken, async (req, res) => {
     }
 
     // Validate due date for pay later
-    if (paymentMethod === 'pay_later') {
-      if (!dueDate) {
-        return res.status(400).json({
-          success: false,
-          error: 'Due date is required for pay later'
-        });
-      }
-      const selectedDate = new Date(dueDate);
-      const today = new Date();
-      if (selectedDate <= today) {
-        return res.status(400).json({
-          success: false,
-          error: 'Due date must be in the future'
-        });
-      }
-    }
+    // if (paymentMethod === 'pay_later') {
+    //   if (!dueDate) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       error: 'Due date is required for pay later'
+    //     });
+    //   }
+    //   const selectedDate = new Date(dueDate);
+    //   const today = new Date();
+    //   if (selectedDate <= today) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       error: 'Due date must be in the future'
+    //     });
+    //   }
+    // }
 
     // Generate unique transaction ID
     const transactionId = `TXN_${Date.now()}`;
@@ -158,9 +158,9 @@ router.post('/create-order', authenticateToken, async (req, res) => {
     };
 
     // Add due date if it's a pay later payment
-    if (paymentMethod === 'pay_later') {
-      paymentData.dueDate = new Date(dueDate);
-    }
+    // if (paymentMethod === 'pay_later') {
+    //   paymentData.dueDate = new Date(dueDate);
+    // }
 
     const payment = new Payment(paymentData);
     await payment.save();
@@ -171,7 +171,7 @@ router.post('/create-order', authenticateToken, async (req, res) => {
     
     // Generate QR for both UPI and pay later options
     if (paymentMethod === 'upi' || paymentMethod === 'pay_later') {
-      const businessName = process.env.BUSINESS_NAME || 'ServiceHub';
+      const businessName = process.env.BUSINESS_NAME || 'Servio';
       upiLink = `upi://pay?pa=${process.env.UPI_ID}&pn=${encodeURIComponent(businessName)}&am=${amount}&cu=INR&tn=${transactionId}`;
       qrCode = await QRCode.toDataURL(upiLink);
     }
@@ -203,18 +203,18 @@ router.post('/create-order', authenticateToken, async (req, res) => {
     };
 
     // Add due date for pay later
-    if (paymentMethod === 'pay_later') {
-      responseData.dueDate = dueDate;
-    }
+    // if (paymentMethod === 'pay_later') {
+    //   responseData.dueDate = dueDate;
+    // }
 
-    // If it's pay later, send confirmation emails with QR code
-    if (paymentMethod === 'pay_later' && customerEmail) {
-      await sendPaymentConfirmationEmails(
-        responseData,
-        customerEmail,
-        customerName
-      );
-    }
+    // Remove the email sending from here since it will be handled in verify-payment
+    // if (paymentMethod === 'pay_later' && customerEmail) {
+    //   await sendPaymentConfirmationEmails(
+    //     responseData,
+    //     customerEmail,
+    //     customerName
+    //   );
+    // }
 
     res.json({
       success: true,
@@ -230,57 +230,57 @@ router.post('/create-order', authenticateToken, async (req, res) => {
 });
 
 // PhonePe callback
-router.post('/phonepe-callback', async (req, res) => {
-  try {
-    const { response } = req.body;
-    const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
-    const { merchantTransactionId, state, code } = decodedResponse;
+// router.post('/phonepe-callback', async (req, res) => {
+//   try {
+//     const { response } = req.body;
+//     const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
+//     const { merchantTransactionId, state, code } = decodedResponse;
 
-    // Find payment record
-    const payment = await Payment.findOne({ orderId: merchantTransactionId });
-    if (!payment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Payment not found'
-      });
-    }
+//     // Find payment record
+//     const payment = await Payment.findOne({ orderId: merchantTransactionId });
+//     if (!payment) {
+//       return res.status(404).json({
+//         success: false,
+//         error: 'Payment not found'
+//       });
+//     }
 
-    // Update payment status
-    payment.status = state === 'COMPLETED' ? 'completed' : 'failed';
-    payment.paymentDetails = decodedResponse;
+//     // Update payment status
+//     payment.status = state === 'COMPLETED' ? 'completed' : 'failed';
+//     payment.paymentDetails = decodedResponse;
 
-    await payment.save();
+//     await payment.save();
 
-    // If payment successful, add reward points
-    if (payment.status === 'completed') {
-      const points = Math.floor(payment.amount / 100);
-      if (points > 0) {
-        await RewardPoints.findOneAndUpdate(
-          { userId: payment.userId },
-          {
-            $inc: { points },
-            $push: {
-              transactions: {
-                type: 'earn',
-                points,
-                description: `Earned for payment of ₹${payment.amount}`
-              }
-            }
-          },
-          { upsert: true }
-        );
-      }
-    }
+//     // If payment successful, add reward points
+//     if (payment.status === 'completed') {
+//       const points = Math.floor(payment.amount / 100);
+//       if (points > 0) {
+//         await RewardPoints.findOneAndUpdate(
+//           { userId: payment.userId },
+//           {
+//             $inc: { points },
+//             $push: {
+//               transactions: {
+//                 type: 'earn',
+//                 points,
+//                 description: `Earned for payment of ₹${payment.amount}`
+//               }
+//             }
+//           },
+//           { upsert: true }
+//         );
+//       }
+//     }
 
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error processing callback:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to process callback'
-    });
-  }
-});
+//     res.json({ success: true });
+//   } catch (error) {
+//     console.error('Error processing callback:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to process callback'
+//     });
+//   }
+// });
 
 // Verify payment
 router.post('/verify-payment', authenticateToken, async (req, res) => {
@@ -327,17 +327,6 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
       console.error('Error fetching user details:', error);
       // Continue with default values
     }
-
-    // Send confirmation emails
-    await sendPaymentConfirmationEmails(
-      {
-        transactionId,
-        amount: payment.amount,
-        upiId: payment.upiId || 'Not provided'
-      },
-      customerEmail,
-      customerName
-    );
 
     // Add reward points (1 point per ₹100)
     const points = Math.floor(payment.amount / 100);
@@ -412,32 +401,28 @@ router.post('/verify-payment', authenticateToken, async (req, res) => {
         }
 
         // Send booking confirmation email
-        try {
-          const emailResponse = await fetch('http://localhost:5000/api/email/send', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              customerEmail,
-              customerName,
-              subject: 'Booking Confirmation - Tiffin Service',
-              orderDetails: {
-                orderId: booking._id.toString(),
-                scheduledDate: booking.scheduledDate,
-                status: booking.status,
-                services: booking.services,
-                amount: booking.totalAmount,
-                paymentMethod: payment.paymentMethod
-              }
-            })
-          });
+        const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/email/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerEmail,
+            customerName,
+            subject: `New Booking-${booking._id.toString()}`,
+            orderDetails: {
+              orderId: booking._id.toString(),
+              scheduledDate: booking.scheduledDate,
+              status: booking.status,
+              services: booking.services,
+              amount: booking.totalAmount,
+              paymentMethod: payment.paymentMethod
+            }
+          })
+        });
 
-          if (!emailResponse.ok) {
-            console.error('Failed to send booking confirmation email:', await emailResponse.text());
-          }
-        } catch (emailError) {
-          console.error('Error sending booking confirmation email:', emailError);
+        if (!emailResponse.ok) {
+          console.error('Failed to send booking confirmation email:', await emailResponse.text());
         }
 
         console.log('Booking created successfully:', {

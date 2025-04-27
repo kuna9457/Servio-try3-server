@@ -15,7 +15,8 @@ router.post('/register', async (req, res) => {
       description,
       location,
       availability,
-      perPersonRate
+      perPersonRate,
+      htmlBody
     } = req.body;
 
     // Validate required fields
@@ -56,38 +57,12 @@ router.post('/register', async (req, res) => {
     await professional.save();
 
     // Send confirmation email to professional
-    const professionalEmailContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #003B95;">Welcome to Servio!</h1>
-        <p>Dear ${name},</p>
-        <p>Thank you for registering as a professional on our platform. Your application is under review.</p>
-        <p>We will notify you once your account is approved.</p>
-        <p>Best regards,<br>The Servio Team</p>
-      </div>
-    `;
-
-    await sendEmail(email, 'Registration Confirmation - Servio', professionalEmailContent);
+    const professionalEmailContent = htmlBody || `Registration received. Thank you for registering as a professional on Servio.`;
+    await sendEmail(email, 'Registration Confirmation - Servio', undefined, professionalEmailContent);
 
     // Send notification email to company
-    const companyEmailContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #003B95;">New Professional Registration</h1>
-        <p>A new professional has registered on Servio:</p>
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone}</p>
-          <p><strong>Services:</strong> ${serviceCategories.join(', ')}</p>
-          <p><strong>Location:</strong> ${location}</p>
-          <p><strong>Per Person Rate:</strong> ₹${perPersonRate}</p>
-          <p><strong>Availability:</strong> ${availability}</p>
-          <p><strong>Description:</strong> ${description}</p>
-        </div>
-        <p>Please review their application in the admin dashboard.</p>
-      </div>
-    `;
-
-    await sendEmail(process.env.BUSINESS_EMAIL, 'New Professional Registration - Servio', companyEmailContent);
+    const companyEmailContent = htmlBody || `A new professional has registered on Servio. Please review their application in the admin dashboard.`;
+    await sendEmail(process.env.BUSINESS_EMAIL, 'New Professional Registration - Servio', undefined, companyEmailContent);
 
     res.status(201).json({
       success: true,
@@ -162,7 +137,7 @@ router.put('/:id/status', async (req, res) => {
       </div>
     `;
 
-    await sendEmail(professional.email, 'Application Status Update - Servio', emailContent);
+    await sendEmail(professional.email, 'Application Status Update - Servio', undefined, emailContent);
 
     res.json({
       success: true,

@@ -35,7 +35,7 @@ router.post('/send', async (req, res) => {
     console.log(customerEmail, customerName, subject, message, orderDetails);
     // Get company details from environment variables
     const companyDetails = {
-      name: process.env.BUSINESS_NAME || 'Service Hub',
+      name: process.env.BUSINESS_NAME || 'Servio',
       email: process.env.BUSINESS_EMAIL,
       phone: process.env.BUSINESS_PHONE || 'Not Available',
       address: process.env.BUSINESS_ADDRESS || 'Not Available',
@@ -164,7 +164,7 @@ router.post('/send', async (req, res) => {
     const companyMailOptions = {
       from: process.env.EMAIL_USER,
       to: companyDetails.email,
-      subject: `New Booking - ${orderDetails?.orderId || 'Order ID: N/A'}`,
+      subject: `New Booking - ${orderDetails?.orderId || 'Order ID: test'}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333;">New Booking Notification</h1>

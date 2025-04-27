@@ -28,12 +28,12 @@ router.post('/register', async (req, res) => {
     }
 
     // Hash password with bcrypt
-    console.log('=== Registration Password Hashing ===');
-    console.log('Password to hash:', password);
-    const salt = await bcrypt.genSalt(10);
-    console.log('Generated Salt:', salt);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    console.log('Hashed Password:', hashedPassword);
+    // console.log('=== Registration Password Hashing ===');
+    // console.log('Password to hash:', password);
+    // const salt = await bcrypt.genSalt(10);
+    // console.log('Generated Salt:', salt);
+    // const hashedPassword = await bcrypt.hash(password, salt);
+    // console.log('Hashed Password:', hashedPassword);
 
     // Create user
     user = new User({
@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
     });
 
     await user.save();
-    console.log('User saved with hashed password');
+    // console.log('User saved with hashed password');
 
     // Create token
     const token = jwt.sign(
@@ -91,8 +91,8 @@ router.post('/login', async (req, res) => {
     }
 
     // Compare password using bcrypt
-    console.log('Comparing password:', password);
-    console.log('Stored password:', user.password);
+    // console.log('Comparing password:', password);
+    // console.log('Stored password:', user.password);
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {

@@ -18,24 +18,75 @@ dotenv.config();
 const app = express();
 
 // Middleware
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    url: req.url,
+    origin: req.headers.origin,
+    headers: req.headers
+  });
+  next();
+});
+
 app.use(cors({
   origin: function(origin, callback) {
-    const allowedOrigins = [
-      process.env.CLIENT_URL,
-      'http://localhost:3000',
-      'http://127.0.0.1:3000'
-    ];
+    // Log all CORS-related information
+    console.log('CORS check - Origin:', origin);
+    console.log('CORS check - Allowed origins:', [
+      'https://servio-try2.vercel.app',
+      process.env.CLIENT_URL
+    ]);
     
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log('CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
+
+    const allowedOrigins = [
+      'https://servio-try2.vercel.app',
+      process.env.CLIENT_URL,
+       // Add localhost for development
+    ].filter(Boolean);
+
+    if (allowedOrigins.includes(origin)) {
+      console.log('CORS: Allowing request from origin:', origin);
       callback(null, true);
     } else {
+      console.log('CORS: Blocking request from origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Add response logging middleware after CORS
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    console.log('Response sent:', {
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      headers: res.getHeaders()
+    });
+  });
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());

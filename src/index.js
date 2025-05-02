@@ -31,24 +31,21 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: function(origin, callback) {
     // Log all CORS-related information
-    console.log('CORS check - Origin:', origin);
-    console.log('CORS check - Allowed origins:', [
-      'https://servio-try2.vercel.app',
-      process.env.CLIENT_URL
-    ]);
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
-      console.log('CORS: Allowing request with no origin');
-      return callback(null, true);
-    }
+   
+     // Split the comma-separated URLs from .env
+     const allowedOrigins = (process.env.CLIENT_URL || '')
+     .split(',')
+     .map(url => url.trim()); // clean spaces
 
-    const allowedOrigins = [
-      'https://servio-try2.vercel.app',
-      process.env.CLIENT_URL,
-       // Add localhost for development
-    ].filter(Boolean);
+   console.log('CORS check - Origin:', origin);
+   console.log('CORS check - Allowed origins:', allowedOrigins);
 
+   // Allow requests with no origin (like mobile apps or curl requests)
+   if (!origin) {
+     console.log('CORS: Allowing request with no origin');
+     return callback(null, true);
+   }
+   
     if (allowedOrigins.includes(origin)) {
       console.log('CORS: Allowing request from origin:', origin);
       callback(null, true);

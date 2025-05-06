@@ -15,12 +15,11 @@ router.post('/register', async (req, res) => {
       description,
       location,
       availability,
-      perPersonRate,
       htmlBody
     } = req.body;
 
     // Validate required fields
-    if (!name || !email || !phone || !serviceCategories || !description || !location || !availability || !perPersonRate) {
+    if (!name || !email || !phone || !serviceCategories || !description || !location || !availability) {
       return res.status(400).json({ 
         message: 'All fields are required',
         missingFields: {
@@ -30,8 +29,7 @@ router.post('/register', async (req, res) => {
           serviceCategories: !serviceCategories,
           description: !description,
           location: !location,
-          availability: !availability,
-          perPersonRate: !perPersonRate
+          availability: !availability
         }
       });
     }
@@ -50,8 +48,7 @@ router.post('/register', async (req, res) => {
       serviceCategories,
       description,
       location,
-      availability,
-      perPersonRate
+      availability
     });
 
     await professional.save();

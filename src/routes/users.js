@@ -13,7 +13,16 @@ router.put('/profile', authenticateToken, async (req, res) => {
   console.log('User from token:', req.user);
   
   try {
-    const { name, phone } = req.body;
+    const { 
+      name, 
+      email,
+      phone, 
+      address,
+      city,
+      state,
+      pincode,
+      alternatePhone 
+    } = req.body;
     const userId = req.user.userId;
 
     console.log('Looking for user with ID:', userId);
@@ -25,13 +34,33 @@ router.put('/profile', authenticateToken, async (req, res) => {
     }
 
     console.log('Found user:', user);
-    // Update only allowed fields
-    user.name = name;
-    user.phone = phone;
+    // Update all fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+    if (city) user.city = city;
+    if (state) user.state = state;
+    if (pincode) user.pincode = pincode;
+    if (alternatePhone) user.alternatePhone = alternatePhone;
 
     await user.save();
     console.log('User updated successfully');
-    res.status(200).json({ message: 'Profile updated successfully', user });
+    res.status(200).json({ 
+      message: 'Profile updated successfully', 
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        pincode: user.pincode,
+        alternatePhone: user.alternatePhone,
+        role: user.role
+      }
+    });
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({ message: 'Failed to update profile' });

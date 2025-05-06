@@ -62,7 +62,7 @@ router.post('/create-qr-payment', authenticateToken, async (req, res) => {
 
     // Generate UPI payment link and QR code
     const upiId = process.env.UPI_ID;
-    const businessName = process.env.BUSINESS_NAME || 'ServiceHub';
+    const businessName = process.env.BUSINESS_NAME || 'Servio';
     
     if (!upiId) {
       throw new Error('UPI ID not configured. Please set UPI_ID in environment variables.');

@@ -31,21 +31,21 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: function(origin, callback) {
     // Log all CORS-related information
-   
-     // Split the comma-separated URLs from .env
-     const allowedOrigins = (process.env.CLIENT_URL || '')
-     .split(',')
-     .map(url => url.trim()); // clean spaces
+    console.log('CORS check - Origin:', origin);
+    
+    // Split the comma-separated URLs from .env
+    const allowedOrigins = (process.env.CLIENT_URL || '')
+      .split(',')
+      .map(url => url.trim()); // clean spaces
 
-   console.log('CORS check - Origin:', origin);
-   console.log('CORS check - Allowed origins:', allowedOrigins);
+    console.log('CORS check - Allowed origins:', allowedOrigins);
 
-   // Allow requests with no origin (like mobile apps or curl requests)
-   if (!origin) {
-     console.log('CORS: Allowing request with no origin');
-     return callback(null, true);
-   }
-   
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log('CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
       console.log('CORS: Allowing request from origin:', origin);
       callback(null, true);
@@ -70,6 +70,14 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
+
+// Add security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 
 // Add response logging middleware after CORS
 app.use((req, res, next) => {

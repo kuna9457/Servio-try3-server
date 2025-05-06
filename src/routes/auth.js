@@ -143,6 +143,7 @@ router.post('/google', async (req, res) => {
 
     // Check if user exists
     let user = await User.findOne({ email: payload.email });
+    
     if (!user) {
       // Create new user
       user = new User({
@@ -151,8 +152,16 @@ router.post('/google', async (req, res) => {
         password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
         role: 'user', // Default role
         avatar: payload.picture,
+        phone: 'Not provided', // Default phone
+        location: 'Not specified' // Default location
       });
       await user.save();
+    } else {
+      // Update existing user's avatar if it's not set
+      if (!user.avatar && payload.picture) {
+        user.avatar = payload.picture;
+        await user.save();
+      }
     }
 
     // Create token
@@ -169,12 +178,17 @@ router.post('/google', async (req, res) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        phone: user.phone,
+        location: user.location
       },
       token,
     });
   } catch (error) {
     console.error('Google auth error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
